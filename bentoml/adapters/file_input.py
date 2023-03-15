@@ -19,10 +19,13 @@ from typing import Iterable, Iterator, Sequence, Tuple
 from bentoml.adapters.base_input import BaseInputAdapter
 from bentoml.adapters.utils import decompress_gzip_request
 from bentoml.types import AwsLambdaEvent, FileLike, HTTPRequest, InferenceTask
+import logging
 
 ApiFuncArgs = Tuple[
     Sequence[FileLike],
 ]
+
+logger = logging.getLogger(__name__)
 
 
 class FileInput(BaseInputAdapter):
@@ -176,7 +179,11 @@ class FileInput(BaseInputAdapter):
 
     def from_aws_lambda_event(self, event: AwsLambdaEvent) -> InferenceTask[FileLike]:
         data = event.get("body", "")
+        logger.warning(data)
+        logger.warning(type(data))
         image_bytes = base64.b64decode(data)
+        logger.warning(image_bytes)
+        logger.warning(type(image_bytes))
         f = FileLike(bytes_=image_bytes)
         return InferenceTask(aws_lambda_event=event, data=f)
 
