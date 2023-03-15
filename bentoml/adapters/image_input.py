@@ -225,7 +225,7 @@ class ImageInput(FileInput):
                 logger.warning('task.data')
                 logger.warning(task.data)
                 logger.warning(type(task.data))
-                image_pil = Image.open(io.BytesIO(task.data))
+                image_pil = Image.open(io.BytesIO(task.data.bytes_))
                 # img_array = np.array(image_pil)
                 img_array = imageio.imread(image_pil, pilmode=self.pilmode)
                 #read from binary
