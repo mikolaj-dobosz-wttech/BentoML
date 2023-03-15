@@ -176,7 +176,8 @@ class FileInput(BaseInputAdapter):
 
     def from_aws_lambda_event(self, event: AwsLambdaEvent) -> InferenceTask[FileLike]:
         data = event.get("body", "")
-        f = FileLike(bytes_=data.encode("utf-8"))
+        image_bytes = base64.b64decode(data)
+        f = FileLike(bytes_=image_bytes)
         return InferenceTask(aws_lambda_event=event, data=f)
 
 
