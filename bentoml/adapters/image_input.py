@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
+import logging
 from typing import BinaryIO, Iterable, Sequence, Tuple
 
 from bentoml.adapters.file_input import FileInput
@@ -21,6 +23,9 @@ from bentoml.adapters.utils import (
 )
 from bentoml.types import InferenceTask
 from bentoml.utils.lazy_loader import LazyLoader
+from PIL import Image
+
+logger = logging.getLogger(__name__)
 
 # BentoML optional dependencies, using lazy load to avoid ImportError
 imageio = LazyLoader("imageio", globals(), "imageio")
@@ -217,7 +222,14 @@ class ImageInput(FileInput):
                 )
                 continue
             try:
-                img_array = imageio.imread(task.data, pilmode=self.pilmode)
+                logger.warning('task.data')
+                logger.warning(task.data)
+                logger.warning(type(task.data))
+                image_pil = Image.open(io.BytesIO(task.data))
+                # img_array = np.array(image_pil)
+                img_array = imageio.imread(image_pil, pilmode=self.pilmode)
+                #read from binary
+
                 img_list.append(img_array)
             except ValueError as e:
                 task.discard(http_status=400, err_msg=str(e))
