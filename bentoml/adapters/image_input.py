@@ -224,13 +224,13 @@ class ImageInput(FileInput):
                 )
                 continue
             try:
-                logger.warning('V2')
+                logger.warning('V3')
                 logger.warning('task.data')
                 logger.warning(task.data)
                 logger.warning(type(task.data))
                 image_pil = Image.open(io.BytesIO(task.data.bytes_))
                 img_array = np.asarray(image_pil)
-                logger.warning(img_array)
+                # logger.warning(img_array)
                 logger.warning(type(img_array))
                 img_array = imageio.imread(img_array, pilmode=self.pilmode)
                 #read from binary
