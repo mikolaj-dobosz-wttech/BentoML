@@ -232,7 +232,7 @@ class ImageInput(FileInput):
                 img_array = np.asarray(image_pil)
                 logger.warning(img_array)
                 logger.warning(type(img_array))
-                img_array = imageio.imread(image_pil, pilmode=self.pilmode)
+                img_array = imageio.imread(img_array, pilmode=self.pilmode)
                 #read from binary
 
                 img_list.append(img_array)
