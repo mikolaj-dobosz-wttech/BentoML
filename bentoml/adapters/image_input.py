@@ -222,6 +222,7 @@ class ImageInput(FileInput):
                 )
                 continue
             try:
+                logger.warning('V1')
                 logger.warning('task.data')
                 logger.warning(task.data)
                 logger.warning(type(task.data))
