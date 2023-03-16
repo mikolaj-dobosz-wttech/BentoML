@@ -224,18 +224,26 @@ class ImageInput(FileInput):
                 )
                 continue
             try:
-                logger.warning('V3')
+                logger.warning('V4')
                 logger.warning('task.data')
                 logger.warning(task.data)
                 logger.warning(type(task.data))
-                image_pil = Image.open(io.BytesIO(task.data.bytes_))
-                img_array = np.asarray(image_pil)
-                # logger.warning(img_array)
-                logger.warning(type(img_array))
-                img_array = imageio.imread(img_array, pilmode=self.pilmode)
-                #read from binary
 
+                image_pil = Image.open(io.BytesIO(task.data.bytes_))
+                with io.BytesIO() as f:
+                    image_pil.save(f, format='png')  # save the image to an in-memory buffer
+                    f.seek(0)  # reset the buffer position to the beginning
+                    img_array = imageio.imread(f, pilmode=self.pilmode)
                 img_list.append(img_array)
+
+
+                # image_pil = Image.open(io.BytesIO(task.data.bytes_))
+                # img_array = np.asarray(image_pil)
+                # # logger.warning(img_array)
+                # logger.warning(type(img_array))
+                # img_array = imageio.imread(img_array, pilmode=self.pilmode)
+                # #read from binary
+
             except ValueError as e:
                 task.discard(http_status=400, err_msg=str(e))
 
