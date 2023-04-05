@@ -57,6 +57,7 @@ install_requires = [
     "newrelic",
     "typing_extensions",
     "pyyaml"
+    "Pillow"
 ]
 
 yatai_service_requires = [

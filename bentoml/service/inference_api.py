@@ -30,8 +30,6 @@ from bentoml.types import HTTPRequest, HTTPResponse, InferenceResult, InferenceT
 from bentoml.utils import cached_property
 import newrelic.agent
 
-
-newrelic.agent.initialize()
 logger = logging.getLogger(__name__)
 prediction_logger = logging.getLogger("bentoml.prediction")
 
