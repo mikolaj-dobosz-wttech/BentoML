@@ -54,6 +54,7 @@ install_requires = [
     'dataclasses;python_version < "3.7"',
     "chardet",
     "simple-di==0.1.0",
+    "newrelic"
 ]
 
 yatai_service_requires = [
