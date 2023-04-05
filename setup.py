@@ -55,6 +55,8 @@ install_requires = [
     "chardet",
     "simple-di==0.1.0",
     "newrelic"
+    "typing_extensions"
+    "pyyaml"
 ]
 
 yatai_service_requires = [
