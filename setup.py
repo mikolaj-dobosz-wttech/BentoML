@@ -56,7 +56,7 @@ install_requires = [
     "simple-di==0.1.0",
     "newrelic",
     "typing_extensions",
-    "pyyaml"
+    "pyyaml",
     "Pillow"
 ]
 
