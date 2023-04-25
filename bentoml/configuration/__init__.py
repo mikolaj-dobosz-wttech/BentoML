@@ -46,7 +46,7 @@ def expand_env_var(env_var):
 # the BentoML module to be used when loading and using a saved BentoService bundle.
 # This is useful when using customized BentoML fork/branch or when working with
 # development branches of BentoML
-BENTOML_VERSION = __version__
+BENTOML_VERSION = "0.13.2"
 # e.g. from '0.4.2+5.g6cac97f.dirty' to '0.4.2'
 LAST_PYPI_RELEASE_VERSION = __version__.split('+')[0]
 

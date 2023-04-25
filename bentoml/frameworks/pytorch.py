@@ -134,13 +134,13 @@ class PytorchModelArtifact(BentoServiceArtifact):
         return self.pack(model)
 
     def set_dependencies(self, env: BentoServiceEnv):
-        logger.warning(
-            "BentoML by default does not include spacy and torchvision package when "
-            "using PytorchModelArtifact. To make sure BentoML bundle those packages if "
-            "they are required for your model, either import those packages in "
-            "BentoService definition file or manually add them via "
-            "`@env(pip_packages=['torchvision'])` when defining a BentoService"
-        )
+        # logger.warning(
+        #     "BentoML by default does not include spacy and torchvision package when "
+        #     "using PytorchModelArtifact. To make sure BentoML bundle those packages if "
+        #     "they are required for your model, either import those packages in "
+        #     "BentoService definition file or manually add them via "
+        #     "`@env(pip_packages=['torchvision'])` when defining a BentoService"
+        # )
         if env._infer_pip_packages:
             env.add_pip_packages(['torch'])
 
