@@ -14,7 +14,7 @@
 
 from ._version import get_versions
 
-__version__ = get_versions()['version']
+__version__ = "0.13.2"
 del get_versions
 
 from bentoml.configuration import inject_dependencies
