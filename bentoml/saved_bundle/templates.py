@@ -77,6 +77,7 @@ ENV EXTRA_PIP_INSTALL_ARGS $EXTRA_PIP_INSTALL_ARGS
 
 ARG UID=1034
 ARG GID=1034
+RUN apt-get update && apt-get install passwd
 RUN groupadd -g $GID -o bentoml && useradd -m -u $UID -g $GID -o -r bentoml
 
 ARG BUNDLE_PATH=/home/bentoml/bundle
@@ -100,6 +101,8 @@ RUN ./bentoml-init.sh ensure_python
 COPY --chown=bentoml:bentoml environment.yml ./
 RUN ./bentoml-init.sh restore_conda_env
 
+RUN pip install --upgrade pip
+RUN apt-get install -y git && apt-get install -y gcc
 COPY --chown=bentoml:bentoml requirements.txt ./
 RUN ./bentoml-init.sh install_pip_packages
 
