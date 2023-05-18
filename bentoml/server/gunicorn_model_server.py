@@ -65,7 +65,7 @@ class GunicornModelServer(Application):  # pylint: disable=abstract-method
             "loglevel": loglevel.upper(),
             "keyfile": "testkey.pem",
             "certfile": "testcert.pem",
-            "bind": "0.0.0.0:8070"
+            "reuse_port": ""
         }
         if workers:
             self.options['workers'] = workers
