@@ -63,6 +63,8 @@ class GunicornModelServer(Application):  # pylint: disable=abstract-method
             "timeout": timeout,  # TODO
             "limit_request_line": max_request_size,
             "loglevel": loglevel.upper(),
+            "keyfile": "testkey.pem",
+            "certfile": "testcert.pem"
         }
         if workers:
             self.options['workers'] = workers
