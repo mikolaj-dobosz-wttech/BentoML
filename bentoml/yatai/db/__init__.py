@@ -44,7 +44,6 @@ def is_sqlite_db(db_url):
 class DB(object):
     def __init__(self, db_url):
         from sqlalchemy import create_engine
-        from sqlalchemy_utils import database_exists
         from sqlalchemy.orm import sessionmaker
 
         extra_db_args = {'echo': True}
@@ -58,13 +57,6 @@ class DB(object):
             extra_db_args['pool_pre_ping'] = True
 
         self.engine = create_engine(db_url, **extra_db_args)
-
-        if not database_exists(self.engine.url) and not is_sqlite_db(db_url):
-            raise BentoMLException(
-                f'Database does not exist or Database name is missing in config '
-                f'db.url: {db_url}'
-            )
-
         self.create_all_or_upgrade_db()
         self.session_maker = sessionmaker(bind=self.engine)
         self._setup_stores()
