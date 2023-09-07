@@ -21,13 +21,13 @@ from bentoml.configuration.containers import BentoMLContainer
 
 @inject
 def get_open_api_spec_json(
-    bento_service,
-    enable_metrics: bool = Provide[
-        BentoMLContainer.config.bento_server.metrics.enabled
-    ],
-    enable_feedback: bool = Provide[
-        BentoMLContainer.config.bento_server.feedback.enabled
-    ],
+        bento_service,
+        enable_metrics: bool = Provide[
+            BentoMLContainer.config.bento_server.metrics.enabled
+        ],
+        enable_feedback: bool = Provide[
+            BentoMLContainer.config.bento_server.feedback.enabled
+        ],
 ):
     """
     The docs for all endpoints in Open API format.
@@ -38,9 +38,9 @@ def get_open_api_spec_json(
             version=bento_service.version,
             title=bento_service.name,
             description="To get a client SDK, copy all content from <a "
-            "href=\"/docs.json\">docs</a> and paste into "
-            "<a href=\"https://editor.swagger.io\">editor.swagger.io</a> then click "
-            "the tab <strong>Generate Client</strong> and choose the language.",
+                        "href=\"/docs.json\">docs</a> and paste into "
+                        "<a href=\"https://editor.swagger.io\">editor.swagger.io</a> then click "
+                        "the tab <strong>Generate Client</strong> and choose the language.",
         ),
         tags=[{"name": "infra"}, {"name": "app"}],
     )
@@ -52,7 +52,7 @@ def get_open_api_spec_json(
         get=OrderedDict(
             tags=["infra"],
             description="Health check endpoint. Expecting an empty response with status"
-            " code 200 when the service is in health state",
+                        " code 200 when the service is in health state",
             responses=default_response,
         )
     )
@@ -61,7 +61,15 @@ def get_open_api_spec_json(
         get=OrderedDict(
             tags=["infra"],
             description="BentoService metadata endpoint. Returns the service's"
-            "`bentoml.yml` in JSON format.",
+                        "`bentoml.yml` in JSON format.",
+            responses=default_response,
+        )
+    )
+
+    paths["/logs"] = OrderedDict(
+        get=OrderedDict(
+            tags=["infra"],
+            description="BentoService logs from the current instance.",
             responses=default_response,
         )
     )
@@ -79,10 +87,10 @@ def get_open_api_spec_json(
             post=OrderedDict(
                 tags=["infra"],
                 description="Provide feedback to prediction results from BentoService. "
-                "Expecting feedback request payload in JSON format "
-                "and requires `request_id` field, which can be obtained "
-                "from any BentoService prediction response's header. "
-                "Only last key will be considered if keys are repeated.",
+                            "Expecting feedback request payload in JSON format "
+                            "and requires `request_id` field, which can be obtained "
+                            "from any BentoService prediction response's header. "
+                            "Only last key will be considered if keys are repeated.",
                 requestBody=OrderedDict(
                     required=True,
                     content={

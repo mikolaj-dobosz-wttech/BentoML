@@ -31,13 +31,11 @@ from bentoml.server.instruments import InstrumentMiddleware
 from bentoml.types import HTTPRequest
 from bentoml.utils.open_api import get_open_api_spec_json
 
-
 if TYPE_CHECKING:
     from bentoml.service import InferenceAPI
 
 feedback_logger = logging.getLogger("bentoml.feedback")
 logger = logging.getLogger(__name__)
-
 
 DEFAULT_INDEX_HTML = '''\
 <!DOCTYPE html>
@@ -150,19 +148,19 @@ class ModelApp:
 
     @inject
     def __init__(
-        self,
-        bundle_path: str = Provide[BentoMLContainer.bundle_path],
-        app_name: str = None,
-        enable_swagger: bool = Provide[
-            BentoMLContainer.config.bento_server.swagger.enabled
-        ],
-        enable_metrics: bool = Provide[
-            BentoMLContainer.config.bento_server.metrics.enabled
-        ],
-        enable_feedback: bool = Provide[
-            BentoMLContainer.config.bento_server.feedback.enabled
-        ],
-        tracer=Provide[BentoMLContainer.tracer],
+            self,
+            bundle_path: str = Provide[BentoMLContainer.bundle_path],
+            app_name: str = None,
+            enable_swagger: bool = Provide[
+                BentoMLContainer.config.bento_server.swagger.enabled
+            ],
+            enable_metrics: bool = Provide[
+                BentoMLContainer.config.bento_server.metrics.enabled
+            ],
+            enable_feedback: bool = Provide[
+                BentoMLContainer.config.bento_server.feedback.enabled
+            ],
+            tracer=Provide[BentoMLContainer.tracer],
     ):
         from bentoml.saved_bundle.loader import load_from_dir
 
@@ -189,9 +187,9 @@ class ModelApp:
 
     @inject
     def run(
-        self,
-        port: int = Provide[BentoMLContainer.forward_port],
-        host: str = Provide[BentoMLContainer.forward_host],
+            self,
+            port: int = Provide[BentoMLContainer.forward_port],
+            host: str = Provide[BentoMLContainer.forward_host],
     ):
         """
         Start an REST server at the specific port on the instance or parameter.
@@ -278,6 +276,18 @@ class ModelApp:
         return Response(response="\n", status=200, mimetype="text/plain")
 
     @staticmethod
+    def logs_func():
+        """
+        Health check for BentoML API server.
+        Make sure it works with Kubernetes liveness probe
+        """
+        log_file = 'my_log_file.log'
+
+        with open(log_file, 'r') as file:
+            log_contents = file.read()
+        return Response(response=log_contents, status=200, mimetype="text/plain")
+
+    @staticmethod
     def metadata_json_func(bento_service):
         bento_service_metadata = bento_service.get_bento_service_metadata_pb()
         return jsonify(MessageToJson(bento_service_metadata))
@@ -358,6 +368,8 @@ class ModelApp:
         if self.enable_metrics:
             self.app.add_url_rule("/metrics", "metrics", self.metrics_view_func)
 
+        self.app.add_url_rule("/logs", "logs", self.logs_func)
+
         if self.enable_feedback:
             self.app.add_url_rule(
                 "/feedback",
@@ -409,7 +421,7 @@ class ModelApp:
                     response = make_response(
                         jsonify(
                             message="BentoService error handling API request: %s"
-                            % str(e)
+                                    % str(e)
                         ),
                         e.status_code,
                     )
@@ -430,9 +442,9 @@ class ModelApp:
 
         def api_func_with_tracing():
             with self.tracer.span(
-                service_name=f"BentoService.{self.bento_service.name}",
-                span_name=f"InferenceAPI {api.name} HTTP route",
-                request_headers=request.headers,
+                    service_name=f"BentoService.{self.bento_service.name}",
+                    span_name=f"InferenceAPI {api.name} HTTP route",
+                    request_headers=request.headers,
             ):
                 return api_func()
 
@@ -440,4 +452,4 @@ class ModelApp:
 
     @inject
     def metrics_view_func(self, client=Provide[BentoMLContainer.metrics_client]):
-        return Response(client.generate_latest(), mimetype=client.CONTENT_TYPE_LATEST,)
+        return Response(client.generate_latest(), mimetype=client.CONTENT_TYPE_LATEST, )

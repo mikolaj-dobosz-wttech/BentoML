@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
 
 import argparse
 import functools
@@ -32,6 +33,10 @@ import newrelic.agent
 
 logger = logging.getLogger(__name__)
 prediction_logger = logging.getLogger("bentoml.prediction")
+log_file = 'my_log_file.log'
+file_handler = logging.FileHandler(log_file)
+prediction_logger.addHandler(file_handler)
+prediction_logger.setLevel(logging.INFO)
 
 
 class InferenceAPI(object):
@@ -43,18 +48,18 @@ class InferenceAPI(object):
 
     @inject
     def __init__(
-        self,
-        service,
-        name,
-        doc,
-        input_adapter: BaseInputAdapter,
-        user_func: Callable,
-        output_adapter: BaseOutputAdapter,
-        mb_max_latency=10000,
-        mb_max_batch_size=1000,
-        batch=False,
-        route=None,
-        tracer=Provide[BentoMLContainer.tracer],
+            self,
+            service,
+            name,
+            doc,
+            input_adapter: BaseInputAdapter,
+            user_func: Callable,
+            output_adapter: BaseOutputAdapter,
+            mb_max_latency=10000,
+            mb_max_batch_size=1000,
+            batch=False,
+            route=None,
+            tracer=Provide[BentoMLContainer.tracer],
     ):
         """
         :param service: ref to service containing this API
@@ -173,8 +178,8 @@ class InferenceAPI(object):
         @functools.wraps(self._user_func)
         def wrapped_func(*args, **kwargs):
             with self.tracer.span(
-                service_name=f"BentoService.{self.service.name}",
-                span_name=f"InferenceAPI {self.name} user defined callback function",
+                    service_name=f"BentoService.{self.service.name}",
+                    span_name=f"InferenceAPI {self.name} user defined callback function",
             ):
                 if append_arg and append_arg in kwargs:
                     tasks = kwargs.pop(append_arg)
@@ -224,7 +229,7 @@ class InferenceAPI(object):
         return schema
 
     def _filter_tasks(
-        self, inf_tasks: Iterable[InferenceTask]
+            self, inf_tasks: Iterable[InferenceTask]
     ) -> Iterator[InferenceTask]:
         for task in inf_tasks:
             if task.is_discarded:
@@ -236,65 +241,86 @@ class InferenceAPI(object):
                 task.discard(http_status=400, err_msg=str(e))
 
     def infer(self, inf_tasks: Iterable[InferenceTask]) -> Sequence[InferenceResult]:
-        inf_tasks = tuple(inf_tasks)
+        try:
+            inf_tasks = tuple(inf_tasks)
 
-        # extract args
-        user_args = self.input_adapter.extract_user_func_args(inf_tasks)
-        filtered_tasks = tuple(t for t in inf_tasks if not t.is_discarded)
-
+            # extract args
+            user_args = self.input_adapter.extract_user_func_args(inf_tasks)
+            filtered_tasks = tuple(t for t in inf_tasks if not t.is_discarded)
+        except Exception as e:
+            prediction_logger.error(
+                dict(
+                    error=str(e),
+                    input=inf_tasks,
+                    status_code=500,
+                    time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                )
+            )
+            raise e
         # call user function
-        if not self.batch:  # For single inputs
-            user_return = []
-            for task, legacy_user_args in zip(
-                filtered_tasks,
-                self.input_adapter.iter_batch_args(user_args, tasks=filtered_tasks),
-            ):
-                ret = self.user_func(*legacy_user_args, task=task)
-                if task.is_discarded:
-                    continue
+        try:
+            if not self.batch:  # For single inputs
+                user_return = []
+                for task, legacy_user_args in zip(
+                        filtered_tasks,
+                        self.input_adapter.iter_batch_args(user_args, tasks=filtered_tasks),
+                ):
+                    ret = self.user_func(*legacy_user_args, task=task)
+                    if task.is_discarded:
+                        continue
+                    else:
+                        user_return.append(ret)
+                if (
+                        isinstance(user_return, (list, tuple))
+                        and len(user_return)
+                        and isinstance(user_return[0], InferenceResult)
+                ):
+                    inf_results = user_return
                 else:
-                    user_return.append(ret)
-            if (
-                isinstance(user_return, (list, tuple))
-                and len(user_return)
-                and isinstance(user_return[0], InferenceResult)
-            ):
-                inf_results = user_return
+                    # pack return value
+                    filtered_tasks = tuple(t for t in inf_tasks if not t.is_discarded)
+                    inf_results = self.output_adapter.pack_user_func_return_value(
+                        user_return, tasks=filtered_tasks
+                    )
             else:
-                # pack return value
-                filtered_tasks = tuple(t for t in inf_tasks if not t.is_discarded)
-                inf_results = self.output_adapter.pack_user_func_return_value(
-                    user_return, tasks=filtered_tasks
-                )
-        else:
-            user_return = self.user_func(*user_args, tasks=filtered_tasks)
-            if (
-                isinstance(user_return, (list, tuple))
-                and len(user_return)
-                and isinstance(user_return[0], InferenceResult)
-            ):
-                inf_results = user_return
-            else:
-                # pack return value
-                filtered_tasks = tuple(t for t in inf_tasks if not t.is_discarded)
-                inf_results = self.output_adapter.pack_user_func_return_value(
-                    user_return, tasks=filtered_tasks
-                )
+                user_return = self.user_func(*user_args, tasks=filtered_tasks)
+                if (
+                        isinstance(user_return, (list, tuple))
+                        and len(user_return)
+                        and isinstance(user_return[0], InferenceResult)
+                ):
+                    inf_results = user_return
+                else:
+                    # pack return value
+                    filtered_tasks = tuple(t for t in inf_tasks if not t.is_discarded)
+                    inf_results = self.output_adapter.pack_user_func_return_value(
+                        user_return, tasks=filtered_tasks
+                    )
 
-        full_results = InferenceResult.complete_discarded(inf_tasks, inf_results)
-
+            full_results = InferenceResult.complete_discarded(inf_tasks, inf_results)
+        except Exception as e:
+            prediction_logger.error(
+                dict(
+                    error=str(e),
+                    input=inf_tasks,
+                    status_code=500,
+                    time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                )
+            )
+            raise e
         log_data = dict(
             service_name=self.service.name if self.service else "",
-            service_version=self.service.version if self.service else "",
-            api=self.name,
+            route=self.name,
         )
         for task, result in zip(inf_tasks, inf_results):
+            result = result.to_json()
+            current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             prediction_logger.info(
                 dict(
                     log_data,
-                    task=task.to_json(),
-                    result=result.to_json(),
-                    request_id=task.task_id,
+                    input=task.to_json()["data"],
+                    status_code=result["http_status"],
+                    time=current_time,
                 )
             )
 
@@ -310,8 +336,8 @@ class InferenceAPI(object):
 
     def handle_batch_request(self, requests: Sequence[HTTPRequest]):
         with self.tracer.span(
-            service_name=f"BentoService.{self.service.name}",
-            span_name=f"InferenceAPI {self.name} handle batch requests",
+                service_name=f"BentoService.{self.service.name}",
+                span_name=f"InferenceAPI {self.name} handle batch requests",
         ):
             inf_tasks = tuple(map(self.input_adapter.from_http_request, requests))
             results = self.infer(inf_tasks)

@@ -48,6 +48,7 @@ BENTOML_RESERVED_API_NAMES = [
     "index",
     "swagger",
     "docs",
+    "logs",
     "healthz",
     "metrics",
     "feedback",
@@ -71,7 +72,7 @@ def validate_inference_api_name(api_name: str):
 
 def validate_inference_api_route(route: str):
     if re.findall(
-        r"[?#]+|^(//)|^:", route
+            r"[?#]+|^(//)|^:", route
     ):  # contains '?' or '#' OR  start with '//' OR start with ':'
         # https://tools.ietf.org/html/rfc3986#page-22
         raise InvalidArgument(
@@ -84,16 +85,16 @@ def validate_inference_api_route(route: str):
 
 
 def api_decorator(
-    *args,
-    input: BaseInputAdapter = None,
-    output: BaseOutputAdapter = None,
-    api_name: str = None,
-    route: str = None,
-    api_doc: str = None,
-    mb_max_batch_size: int = DEFAULT_MAX_BATCH_SIZE,
-    mb_max_latency: int = DEFAULT_MAX_LATENCY,
-    batch=False,
-    **kwargs,
+        *args,
+        input: BaseInputAdapter = None,
+        output: BaseOutputAdapter = None,
+        api_name: str = None,
+        route: str = None,
+        api_doc: str = None,
+        mb_max_batch_size: int = DEFAULT_MAX_BATCH_SIZE,
+        mb_max_latency: int = DEFAULT_MAX_LATENCY,
+        batch=False,
+        **kwargs,
 ):  # pylint: disable=redefined-builtin
     """
     A decorator exposed as `bentoml.api` for defining Inference API in a BentoService
@@ -143,7 +144,7 @@ def api_decorator(
         if input is None:
             # Raise error when input adapter class passed without instantiation
             if not args or not (
-                inspect.isclass(args[0]) and issubclass(args[0], BaseInputAdapter)
+                    inspect.isclass(args[0]) and issubclass(args[0], BaseInputAdapter)
             ):
                 raise InvalidArgument(
                     "BentoService @api decorator first parameter must "
@@ -229,22 +230,22 @@ def artifacts_decorator(artifacts: List[BentoServiceArtifact]):
 
 
 def env_decorator(
-    pip_dependencies: List[str] = None,
-    pip_packages: List[str] = None,
-    pip_index_url: str = None,
-    pip_trusted_host: str = None,
-    pip_extra_index_url: str = None,
-    auto_pip_dependencies: bool = None,
-    infer_pip_packages: bool = False,
-    requirements_txt_file: str = None,
-    conda_channels: List[str] = None,
-    conda_overwrite_channels: bool = False,
-    conda_override_channels: bool = False,
-    conda_dependencies: List[str] = None,
-    conda_env_yml_file: str = None,
-    setup_sh: str = None,
-    docker_base_image: str = None,
-    zipimport_archives: List[str] = None,
+        pip_dependencies: List[str] = None,
+        pip_packages: List[str] = None,
+        pip_index_url: str = None,
+        pip_trusted_host: str = None,
+        pip_extra_index_url: str = None,
+        auto_pip_dependencies: bool = None,
+        infer_pip_packages: bool = False,
+        requirements_txt_file: str = None,
+        conda_channels: List[str] = None,
+        conda_overwrite_channels: bool = False,
+        conda_override_channels: bool = False,
+        conda_dependencies: List[str] = None,
+        conda_env_yml_file: str = None,
+        setup_sh: str = None,
+        docker_base_image: str = None,
+        zipimport_archives: List[str] = None,
 ):
     """Define environment and dependencies required for the BentoService being created
 
@@ -370,8 +371,8 @@ def validate_version_str(version_str):
     regex = r"[A-Za-z0-9_.-]{1,128}\Z"
     semver_regex = r"^(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"  # noqa: E501
     if (
-        re.match(regex, version_str) is None
-        and re.match(semver_regex, version_str) is None
+            re.match(regex, version_str) is None
+            and re.match(semver_regex, version_str) is None
     ):
         raise InvalidArgument(
             'Invalid BentoService version: "{}", it can only consist'
@@ -505,8 +506,8 @@ class BentoService:
         self._inference_apis = []
 
         for _, function in inspect.getmembers(
-            self.__class__,
-            predicate=lambda x: inspect.isfunction(x) or inspect.ismethod(x),
+                self.__class__,
+                predicate=lambda x: inspect.isfunction(x) or inspect.ismethod(x),
         ):
             if hasattr(function, "_is_api"):
                 api_name = getattr(function, "_api_name")
@@ -546,7 +547,7 @@ class BentoService:
             # 'package_path/artifacts/', but for loading from bundle directory, it is
             # in 'path/{service_name}/artifacts/'
             if os.path.isdir(
-                os.path.join(self._bento_service_bundle_path, ARTIFACTS_DIR_NAME)
+                    os.path.join(self._bento_service_bundle_path, ARTIFACTS_DIR_NAME)
             ):
                 artifacts_path = os.path.join(
                     self._bento_service_bundle_path, ARTIFACTS_DIR_NAME
@@ -675,8 +676,8 @@ class BentoService:
             self.__class__._bento_service_bundle_version = None
 
         if (
-            self._bento_service_version is not None
-            and self._bento_service_version != version_str
+                self._bento_service_version is not None
+                and self._bento_service_version != version_str
         ):
             logger.warning(
                 "Resetting BentoService '%s' version from %s to %s",
@@ -864,10 +865,10 @@ class BentoService:
 
     @inject
     def infer_pip_dependencies_map(
-        self,
-        bentoml_version: str = Provide[
-            BentoMLContainer.bento_bundle_deployment_version
-        ],
+            self,
+            bentoml_version: str = Provide[
+                BentoMLContainer.bento_bundle_deployment_version
+            ],
     ):
         if not self.pip_dependencies_map:
             self.pip_dependencies_map = {}
