@@ -32,7 +32,7 @@ from bentoml.utils import cached_property
 import newrelic.agent
 
 logger = logging.getLogger(__name__)
-prediction_logger = logging.getLogger("bentoml.prediction")
+prediction_logger = logging.getLogger("custom")
 log_file = 'logs.log'
 file_handler = logging.FileHandler(log_file)
 prediction_logger.addHandler(file_handler)
@@ -342,7 +342,6 @@ class InferenceAPI(object):
         for task, result in zip(inf_tasks, inf_results):
             result = result.to_json()
             current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            print(task.data, type(task.data))
             input_task = truncate_strings(task.to_json()["data"])
             prediction_logger.info(
                 dict(
