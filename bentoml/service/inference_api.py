@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import datetime
-
+import ast
 import argparse
 import functools
 import inspect
@@ -33,10 +33,30 @@ import newrelic.agent
 
 logger = logging.getLogger(__name__)
 prediction_logger = logging.getLogger("bentoml.prediction")
-log_file = 'my_log_file.log'
+log_file = 'logs.log'
 file_handler = logging.FileHandler(log_file)
 prediction_logger.addHandler(file_handler)
 prediction_logger.setLevel(logging.INFO)
+
+
+def truncate_strings(input_dict, max_length=50):
+    if isinstance(input_dict, str):
+        try:
+            input_dict = ast.literal_eval(input_dict)
+        except Exception as e:
+            return input_dict
+    if isinstance(input_dict, dict):
+        result_dict = {}
+        for key, value in input_dict.items():
+            if isinstance(value, str):
+                result_dict[key] = value[:max_length] + "..."
+            elif isinstance(value, dict):
+                result_dict[key] = truncate_strings(value)
+            else:
+                result_dict[key] = value
+        return result_dict
+    else:
+        return input_dict
 
 
 class InferenceAPI(object):
@@ -191,6 +211,13 @@ class InferenceAPI(object):
                     return self._user_func(*args, **kwargs)
                 except Exception as e:  # pylint: disable=broad-except
                     logger.error("Error caught in API function:", exc_info=1)
+                    prediction_logger.error(
+                        dict(
+                            error=str(e),
+                            status_code=500,
+                            time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        )
+                    )
                     if self.batch:
                         for task in tasks:
                             if not task.is_discarded:
@@ -315,10 +342,12 @@ class InferenceAPI(object):
         for task, result in zip(inf_tasks, inf_results):
             result = result.to_json()
             current_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            print(task.data, type(task.data))
+            input_task = truncate_strings(task.to_json()["data"])
             prediction_logger.info(
                 dict(
                     log_data,
-                    input=task.to_json()["data"],
+                    input=input_task,
                     status_code=result["http_status"],
                     time=current_time,
                 )

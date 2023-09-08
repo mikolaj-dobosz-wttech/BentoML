@@ -281,10 +281,15 @@ class ModelApp:
         Health check for BentoML API server.
         Make sure it works with Kubernetes liveness probe
         """
-        log_file = 'my_log_file.log'
 
-        with open(log_file, 'r') as file:
-            log_contents = file.read()
+        log_file = 'logs.log'
+        try:
+            with open(log_file, 'r') as file:
+                log_contents = file.read()
+                if log_contents == '':
+                    log_contents = "No logs found"
+        except FileNotFoundError:
+            log_contents = "No logs found"
         return Response(response=log_contents, status=200, mimetype="text/plain")
 
     @staticmethod
