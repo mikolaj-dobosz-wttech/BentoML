@@ -282,11 +282,11 @@ class ModelApp:
         Make sure it works with Kubernetes liveness probe
         """
 
-        log_file = 'logs.log'
+        log_file = "/tmp/bento_logs.log"
         try:
-            with open(log_file, 'r') as file:
+            with open(log_file, "r") as file:
                 log_contents = file.read()
-                if log_contents == '':
+                if log_contents == "":
                     log_contents = "No logs found"
         except FileNotFoundError:
             log_contents = "No logs found"

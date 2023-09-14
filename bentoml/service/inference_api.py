@@ -33,7 +33,7 @@ import newrelic.agent
 
 logger = logging.getLogger(__name__)
 prediction_logger = logging.getLogger("custom")
-log_file = 'logs.log'
+log_file = "/tmp/bento_logs.log"
 file_handler = logging.FileHandler(log_file)
 prediction_logger.addHandler(file_handler)
 prediction_logger.setLevel(logging.INFO)
