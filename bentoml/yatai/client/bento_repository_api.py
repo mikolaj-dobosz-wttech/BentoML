@@ -41,7 +41,7 @@ from bentoml.utils import (
 )
 from bentoml.utils.lazy_loader import LazyLoader
 from bentoml.utils.tempdir import TempDirectory
-from bentoml.yatai.client.label_utils import generate_gprc_labels_selector
+# from bentoml.yatai.client.label_utils import generate_gprc_labels_selector
 from bentoml.yatai.grpc_stream_utils import UploadBentoStreamRequests
 from bentoml.yatai.proto import status_pb2
 from bentoml.yatai.proto.repository_pb2 import (
@@ -455,8 +455,8 @@ class BentoRepositoryAPIClient:
             ascending_order=ascending_order,  # type: ignore
         )
 
-        if labels is not None:
-            generate_gprc_labels_selector(list_bento_request.label_selectors, labels)
+        # if labels is not None:
+        #     generate_gprc_labels_selector(list_bento_request.label_selectors, labels)
 
         result = self.yatai_service.ListBento(list_bento_request)
         if result.status.status_code != yatai_proto.status_pb2.Status.OK:
